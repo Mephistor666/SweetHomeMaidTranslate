@@ -1,0 +1,2 @@
+# SweetHomeMaidTranslate
+SweetHomeMaid汉化
