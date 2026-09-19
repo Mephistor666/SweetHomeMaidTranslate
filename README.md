@@ -5,9 +5,9 @@ DMM游戏「スイートホームメイド」SweetHomeMaid的机翻汉化。
 
 ## 使用方法
 
-1. 浏览器安装油猴插件，手机端的话火狐浏览器可以安装 [Tampermonkey](https://www.tampermonkey.net/)。
-2. 打开 [汉化脚本](https://raw.githubusercontent.com/Mephistor666/SweetHomeMaidTranslate/main/Translation/sweethome-maid-cn.user.js)，
-   Tampermonkey 会弹出安装页，点「安装」。或者在 Tampermonkey 里添加脚本，将sweethome-maid-cn.user.js的内容全部复制到添加的脚本中，然后点左上角的文件->保存。
+1. 浏览器安装油猴插件 [Tampermonkey](https://www.tampermonkey.net/)，手机端的话火狐浏览器可以安装插件。
+2. 打开 [汉化脚本](https://raw.githubusercontent.com/Mephistor666/SweetHomeMaidTranslate/main/SweetHomeMaidCN.user.js)，
+   Tampermonkey 会弹出安装页，点「安装」。或者在 Tampermonkey 里手动添加新脚本，将SweetHomeMaidCN.user.js的内容全部复制替换到新脚本中，然后点左上角的文件->save。
 3. 正常打开游戏玩。已翻译的剧情自动显示中文，第一次生效时右下角会提示 `汉化已生效：xxx`。
 4. 关闭汉化在 Tampermonkey 里禁用脚本即可。
 
