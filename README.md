@@ -23,6 +23,7 @@ DMM游戏「スイートホームメイド」SweetHomeMaid的机翻汉化。
 - 汉化方式参考了童话边境的汉化方法 [alex343425/otogitranslate](https://github.com/alex343425/otogitranslate)
 - 翻译模型：[Sakura LLM](https://github.com/SakuraLLM/SakuraLLM) Sakura-Galtransl-14B-v3.8-Q4_K_M
 - 主页点角色的对话气泡和剧情标题使用deepseek-flash翻译。
+- 脚本主体由deepseek-flash实现。
 
 ## 声明
 
