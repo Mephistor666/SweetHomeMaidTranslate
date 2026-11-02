@@ -1,0 +1,36 @@
+{
+  "_说明": "Sakura 翻译配置。endpoint 指向本地 Sakura 服务；参数默认按 Sakura-GalTransl v3.x 推荐值（温度 0.3 / top_p 0.8）。",
+
+  "endpoint": "http://127.0.0.1:8080/v1/chat/completions",
+  "endpoint_completion": "http://127.0.0.1:8080/completion",
+  "health_url": "http://127.0.0.1:8080/v1/models",
+  "mode": "chat",
+  "model": "sakura",
+
+  "system_prompt": "你是一个视觉小说翻译模型，可以通顺地使用给定的术语表以指定的风格将日文翻译成简体中文，并联系上下文正确使用人称代词，注意不要混淆使役态和被动态的主语和宾语，不要擅自添加原文中没有的特殊符号，也不要擅自增加或减少换行。",
+
+  "temperature": 0.3,
+  "top_p": 0.8,
+  "top_k": 40,
+  "repeat_penalty": 1.0,
+  "max_tokens": 512,
+  "timeout": 180,
+
+  "workers": 2,
+  "batch_lines": 20,
+  "batch_chars": 800,
+  "history_chars": 200,
+  "retries": 3,
+  "merge_split_ratio": 1.5,
+
+  "text_commands": ["@ShowCastMessage", "@ShowMessage", "@ShowSkitCastMessage"],
+  "speaker_prefix": true,
+  "speakers": {},
+
+  "glossary": "Translation/glossary.txt",
+  "input": "Resources/assets/AdvStory/import",
+  "segments": "Translation/work/segments.jsonl",
+  "translated": "Translation/work/translated.jsonl",
+  "in_root": "Resources",
+  "out_root": "Translation/Resources"
+}

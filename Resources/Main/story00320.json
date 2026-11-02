@@ -1,0 +1,1 @@
+[1,0,0,[["cc.TextAsset",["_name","text"],1]],[[0,0,1,3]],[[0,"story00320","\r\n@FadeOut,-1,0\r\n@WaitMethod\r\n\r\n@FadeIn,-1,1\r\n@WaitMethod\r\n\r\n@ShowCharacter,彩葉,1,通常,0.2,LL,1\r\n@ShowMessage,\r\nまだシナリオがありません\r\n\r\n\r\n\r\n\r\n\r\n//end\r\n"]],0,0,[],[],[]]
