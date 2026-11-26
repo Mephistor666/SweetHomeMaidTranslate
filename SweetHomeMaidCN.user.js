@@ -37,6 +37,11 @@
         DEBUG: true,             // 控制台打 [汉化] 开头的日志
         ENABLED: true,           // 改成 false 就完全不接管
         TOAST: true,             // 每替换一篇，在画面右下角提示一下（同一篇只提示一次）
+        /* 统一字体：游戏默认 Arial 缺中日文，按字回退会让笔画粗细不一致。
+           这里把 canvas 的字体整体换成 FONT_FAMILY（不改字号/粗细）。想关掉改 false。 */
+        FONT: true,
+        /* 全部文字统一用这个字体：Noto Sans SC 同时覆盖中日英；后面是同风格备份 */
+        FONT_FAMILY: "'Noto Sans SC','Noto Sans CJK SC','Source Han Sans SC','Microsoft YaHei','微软雅黑','等线','DengXian',sans-serif",
         /* 闪光特效处理的状态：
            'keep'  = 保留所有闪光动画（默认）
            'none'  = 开关打开 + 移除全部闪光
@@ -134,6 +139,38 @@
     }
 
     var W = (typeof unsafeWindow !== 'undefined' && unsafeWindow) ? unsafeWindow : window;
+
+    /* ---------- 统一字体：全部文字都用同一个字体 ----------
+       Cocos 的 Label 默认是 Arial；Arial 没有中文/日文，浏览器会按字回退到不同字体，
+       同一句里笔画粗细就会不一致。这里直接接管 canvas 的 font 赋值，把所有文字统一到
+       CONFIG.FONT_FAMILY（Noto Sans SC 同时覆盖中日英）。 */
+    function cnCanvasFont(value) {
+        var v = String(value || '');
+        if (!v || v.indexOf('Noto Sans SC') >= 0) return v;
+        /* 字体简写：... <size> [/line-height] <family> */
+        var m = /^([\s\S]*?\d+(?:\.\d+)?px)(\s*\/[^\s]+)?\s+([\s\S]+)$/.exec(v);
+        if (!m) return v;
+        return m[1] + (m[2] || '') + ' ' + CONFIG.FONT_FAMILY;
+    }
+    if (CONFIG.FONT) {
+        try {
+            var CTX = W.CanvasRenderingContext2D && W.CanvasRenderingContext2D.prototype;
+            var fontDesc = CTX && Object.getOwnPropertyDescriptor(CTX, 'font');
+            if (fontDesc && fontDesc.get && fontDesc.set) {
+                Object.defineProperty(CTX, 'font', {
+                    configurable: true,
+                    enumerable: fontDesc.enumerable,
+                    get: function () { return fontDesc.get.call(this); },
+                    set: function (v) {
+                        try { v = cnCanvasFont(v); } catch (e) { /* 忽略 */ }
+                        fontDesc.set.call(this, v);
+                    }
+                });
+            }
+            log('字体：全部使用 ' + CONFIG.FONT_FAMILY);
+        } catch (e) { /* 忽略 */ }
+    }
+
     var cache = {};              // id -> Promise<string|null>
     var fails = 0;               // 连续「地址不通」次数
 
@@ -602,7 +639,8 @@
             var id = text ? idOf(text) : '';
             var done = function (cn) {
                 if (cn) {
-                    applyResponse(xhr, stripFlashScreen(cn) || cn);
+                    var finalText = stripFlashScreen(cn) || cn;
+                    applyResponse(xhr, finalText);
                     log('替换 ' + id);
                     if (!toasted[id]) {
                         toasted[id] = 1;
