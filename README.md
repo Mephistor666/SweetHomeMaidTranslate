@@ -1,7 +1,8 @@
 # SweetHomeMaid 汉化
 
 DMM游戏「スイートホームメイド」SweetHomeMaid的机翻汉化。
-使用油猴脚本替换游戏剧情、剧情标题和加载界面的角色介绍。
+使用油猴脚本替换游戏剧情、剧情标题和加载界面的角色介绍。  
+[Release](https://github.com/Mephistor666/SweetHomeMaidTranslate/releases)页面也提供了安卓安装包版。
 
 ## 使用方法
 
