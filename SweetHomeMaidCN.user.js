@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SweetHomeMaid 消消乐汉化
 // @namespace    sweethomemaid.translate
-// @version      1.0
+// @version      1.1
 // @description  替换游戏剧情、标题和加载界面的角色介绍
 // @author       SweetHomeMaidTranslate
 // @match        https://game.sweet-home-maid.com/*
@@ -49,7 +49,7 @@
            'short' = 开关打开 + 移除短闪
            'long'  = 开关打开 + 移除长闪 */
         FLASH_MODE: 'keep',
-        VERSION: '1.0',
+        VERSION: '1.1',
 
         /* 译文地址，前面的用不了自动试后面的 */
         BASES: [
