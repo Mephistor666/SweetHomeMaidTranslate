@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         SweetHomeMaid 消消乐汉化
 // @namespace    sweethomemaid.translate
-// @version      1.1
-// @description  替换游戏剧情、标题和加载界面的角色介绍
+// @version      1.0
+// @description  按 story id 把游戏加载的剧情替换成译文
 // @author       SweetHomeMaidTranslate
 // @match        https://game.sweet-home-maid.com/*
 // @match        https://*.sweet-home-maid.com/*
@@ -26,7 +26,6 @@
  *
  * 译文放在仓库的 Translation/Resources/ 下，命名固定 <id>_cn.json，
  * 子目录跟游戏资源目录一致（story1… → Card/，storyEV… → Event/，MainGarden… → Garden/）。
- * 加载界面的角色介绍嵌在主业务脚本的 AppDB.characterProfiles 中，由本脚本单独替换。
  * 寝室剧情里的白屏闪烁特效(短闪两次再长闪一次)可以选择去除。默认不去除。想要去掉的话，在脚本菜单里打开选项"去除闪光弹"，
  * 再选移除全部闪光(默认选项)/ 移除短闪 / 移除长闪。
  * ------------------------------------------------------------------------ */
@@ -49,7 +48,7 @@
            'short' = 开关打开 + 移除短闪
            'long'  = 开关打开 + 移除长闪 */
         FLASH_MODE: 'keep',
-        VERSION: '1.1',
+        VERSION: '1.0',
 
         /* 译文地址，前面的用不了自动试后面的 */
         BASES: [
@@ -65,10 +64,6 @@
         TITLES: true,
         TITLE_FILE: 'titles_cn.json',
         TITLE_APIS: /\/scenario\/(card|event|main|mini-event)\/scenarios/i,
-
-        /* 加载界面随机显示的角色介绍，嵌在 assets/main/index.<hash>.js */
-        PROFILES: true,
-        PROFILE_FILE: 'character_profiles_cn.json',
         /* 游戏主包 crypto-aes.ts 里写死的密钥 */
         JAES_KEY: '95364A843E75F7ED0A9D0A5E0BCBB3343FAF87AF40ABE0C21238D2ACEBA07E33',
         JAES_IV: 'B4461EE05E9A05528783A4BF13E5928D',
@@ -315,7 +310,7 @@
         return p;
     }
 
-    function getFile(url, timeout) {
+    function getFile(url) {
         return new Promise(function (resolve) {
             if (typeof GM_xmlhttpRequest !== 'function') {
                 warn('没有 GM_xmlhttpRequest 权限，取不到译文');
@@ -325,7 +320,7 @@
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: url,
-                timeout: timeout || 20000,
+                timeout: 20000,
                 onload: function (r) { resolve({ status: r.status, text: r.responseText || '' }); },
                 onerror: function () { resolve({ status: -1, text: '' }); },   // -1 = 网络层失败
                 ontimeout: function () { resolve({ status: -1, text: '' }); }
@@ -481,55 +476,6 @@
             return tryBase(0);
         })();
         return titleCache;
-    }
-
-    var profileCache = null;
-    function loadProfiles() {
-        if (profileCache) return profileCache;
-        profileCache = (function () {
-            var deadline = Date.now() + 3000;
-            function tryBase(bi) {
-                if (!CONFIG.PROFILES || bi >= CONFIG.BASES.length) return Promise.resolve(null);
-                var remaining = deadline - Date.now();
-                if (remaining <= 0) return Promise.resolve(null);
-                return getFile(joinUrl(CONFIG.BASES[bi], CONFIG.PROFILE_FILE), Math.max(1, remaining)).then(function (r) {
-                    if (!r || r.status !== 200) return (r && r.status === -1) ? tryBase(bi + 1) : null;
-                    try {
-                        var table = JSON.parse(r.text);
-                        return (table && typeof table === 'object') ? table : null;
-                    } catch (e) {
-                        warn('角色介绍表不是合法 JSON');
-                        return null;
-                    }
-                });
-            }
-            return tryBase(0);
-        })();
-        return profileCache;
-    }
-
-    function patchProfileData(profiles, table) {
-        if (!profiles || !profiles.length || !table) return 0;
-        var fields = ['name', 'ruby', 'cv', 'birthday', 'size', 'description'];
-        var changed = 0;
-        for (var i = 0; i < profiles.length; i++) {
-            var profile = profiles[i], values = profile && table[String(profile.id)];
-            if (!values) continue;
-            var hit = false;
-            for (var j = 0; j < fields.length; j++) {
-                var field = fields[j];
-                if (!Object.prototype.hasOwnProperty.call(values, field)) continue;
-                var value = String(values[field]);
-                if (profile[field] !== value) {
-                    profile[field] = value;
-                    hit = true;
-                }
-            }
-            if (hit) {
-                changed++;
-            }
-        }
-        return changed;
     }
 
     function storyIdOf(item) {
@@ -732,94 +678,7 @@
         XHRProto.__smPatched = true;
     }
 
-    /* 主业务脚本会注册 System 模块 AppDB。在执行 AppDB 前载入中文表，
-       等它导出 characterProfiles 时直接修改内存对象，不改主包文本。 */
-    function installProfileSystemHook(system) {
-        if (!CONFIG.PROFILES || !isCocosGameFrame() ||
-            !system || typeof system.register !== 'function') return false;
-        if (system.__smProfilePatched) return true;
-
-        var origRegister = system.register;
-        system.register = function (name, deps, declaration) {
-            if (typeof name !== 'string' || typeof declaration !== 'function' ||
-                !/\/_virtual\/AppDB\.ts$/.test(name)) {
-                return origRegister.apply(this, arguments);
-            }
-            return origRegister.call(this, name, deps, function (exporter, context) {
-                var table = null;
-                function profileExporter(exportName, value) {
-                    if (exportName === 'AppDB' && value && value.characterProfiles) {
-                        var count = patchProfileData(value.characterProfiles, table || {});
-                        if (count) {
-                            log('替换角色介绍 × ' + count);
-                            if (!toasted.__profiles) {
-                                toasted.__profiles = 1;
-                                toast('汉化已生效：角色介绍 × ' + count);
-                            }
-                        }
-                    }
-                    return exporter.apply(this, arguments);
-                }
-                var module = declaration(profileExporter, context);
-                var origExecute = module && module.execute;
-                if (typeof origExecute === 'function') {
-                    module.execute = function () {
-                        var args = arguments, self = this;
-                        return loadProfiles().then(function (data) {
-                            table = data || {};
-                            return origExecute.apply(self, args);
-                        });
-                    };
-                }
-                return module;
-            });
-        };
-        system.__smProfilePatched = true;
-        log('角色介绍：System/AppDB hook OK');
-        return true;
-    }
-
-    function isCocosGameFrame() {
-        try {
-            return /\/r\/[^/]+\/index\.html$/i.test(W.location.pathname);
-        } catch (e) {
-            return false;
-        }
-    }
-
-    function installProfileSystemPropertyHook() {
-        if (!CONFIG.PROFILES || !isCocosGameFrame()) return;
-        loadProfiles();
-        var system = null, desc = null;
-        try { system = W.System; } catch (e) {}
-        if (system && installProfileSystemHook(system)) return;
-
-        try { desc = Object.getOwnPropertyDescriptor(W, 'System'); } catch (e) {}
-        if (desc && !desc.configurable) {
-            warn('角色介绍：System 已存在但无法挂钩');
-            return;
-        }
-        var previousGet = desc && desc.get;
-        try {
-            Object.defineProperty(W, 'System', {
-                configurable: true,
-                enumerable: true,
-                get: function () {
-                    return system || (previousGet ? previousGet.call(W) : undefined);
-                },
-                set: function (value) {
-                    system = value;
-                    installProfileSystemHook(value);
-                }
-            });
-        } catch (e) {
-            warn('角色介绍：无法监听 System 初始化：' + e);
-        }
-    }
-    installProfileSystemPropertyHook();
-
     log('v' + CONFIG.VERSION + ' 已注入：' + (XHRProto ? 'XHR hook OK' : 'XHR hook fail')
         + '；译文地址 ' + CONFIG.BASES[0] + '；闪光弹：' + flashLabel(flashMode)
-        + '；剧情标题：' + (CONFIG.TITLES ? '开' : '关')
-        + '；角色介绍：' + (CONFIG.PROFILES ? '开' : '关'));
+        + '；剧情标题：' + (CONFIG.TITLES ? '开' : '关'));
 })();
